@@ -14,3 +14,25 @@ console.log(
     ext: "txt",
   }),
 );
+
+console.log(path.delimiter);
+
+console.log(process.env.PATH);
+process.env.PATH.split(path.delimiter);
+
+console.log(__filename);
+console.log(path.dirname(__filename));
+
+console.log(path.extname("index.html"));
+
+const fff = path.isAbsolute("path.js");
+console.log(fff);
+
+const xxx = path.join("/foo", "bar", "baz/asdf");
+console.log(xxx);
+
+const ttt = path.parse("/home/user/dir/file.txt");
+console.log(ttt);
+
+console.log(path.sep);
+"foo\\bar\\baz".split(path.sep);
