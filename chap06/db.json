@@ -1,0 +1,121 @@
+{
+  "boards": [
+    {
+      "id": 1,
+      "title": "첫 번째 글",
+      "content": "json-server 테스트용 게시글입니다.",
+      "writer": "관리자",
+      "createdAt": "2026-01-20"
+    },
+    {
+      "id": 2,
+      "title": "자바스크립트 질문",
+      "content": "fetch 함수 사용법이 궁금합니다.",
+      "writer": "홍길동",
+      "createdAt": "2026-01-21"
+    },
+    {
+      "id": 3,
+      "title": "게시판 페이징",
+      "content": "페이지네이션 구현 방법 공유합니다.",
+      "writer": "김철수",
+      "createdAt": "2026-01-22"
+    },
+    {
+      "id": 4,
+      "title": "연습",
+      "content": "연습방법 공유합니다",
+      "writer": "김철수",
+      "createdAt": "2026-01-23"
+    }
+  ],
+
+  "products3": [
+    {
+      "id": 1,
+      "name": "노트북",
+      "category": "전자기기",
+      "price": 1200000,
+      "stock": 5
+    },
+    {
+      "id": 2,
+      "name": "마우스",
+      "category": "전자기기",
+      "price": 25000,
+      "stock": 30
+    },
+    {
+      "id": 3,
+      "name": "책상",
+      "category": "가구",
+      "price": 180000,
+      "stock": 7
+    }
+  ],
+
+  "users": [
+    {
+      "id": 1,
+      "username": "admin",
+      "password": "1234",
+      "role": "ADMIN"
+    },
+    {
+      "id": 2,
+      "username": "user01",
+      "password": "1111",
+      "role": "USER"
+    }
+  ],
+  "products": [
+    {
+      "id": 1,
+      "name": "무선 마우스",
+      "price": 25000,
+      "seller": "로지샵",
+      "img": "무선마우스.jpg"
+    },
+    {
+      "id": 2,
+      "name": "기계식 키보드",
+      "price": 89000,
+      "seller": "키보드월드",
+      "img": "기계식키보드.jpg"
+    },
+    {
+      "id": 3,
+      "name": "27인치 모니터",
+      "price": 320000,
+      "seller": "모니터몰",
+      "img": "27인치모니터.jpg"
+    }
+  ],
+
+  "reviews": [
+    {
+      "id": 1,
+      "content": "가볍고 반응이 좋아요.",
+      "productId": 1,
+      "writer": "홍길동"
+    },
+    {
+      "id": 2,
+      "content": "가격 대비 성능이 훌륭합니다.",
+      "productId": 1,
+      "writer": "김철수"
+    },
+    {
+      "id": 3,
+      "content": "타건감이 정말 좋네요.",
+      "productId": 2,
+      "writer": "이영희"
+    },
+    {
+      "id": 4,
+      "content": "화면이 크고 선명합니다.",
+      "productId": 3,
+      "writer": "박민수"
+    }
+  ]
+}
