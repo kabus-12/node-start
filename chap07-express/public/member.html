@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <!-- Bootstrap 5 CDN -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="bg-light">
+    <div class="container mt-5">
+      <h3 class="mb-4 text-center">멤버 페이지</h3>
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <div class="table-responsive">
+            <table
+              class="table table-bordered table-hover align-middle text-center"
+            >
+              <thead class="table-primary">
+                <tr>
+                  <th>ID</th>
+                  <th>이름</th>
+                  <th>이미지</th>
+                  <th>삭제</th>
+                </tr>
+              </thead>
+              <tbody id="membody"></tbody>
+              <tfoot>
+                <a href="index.html">+회원 추가 등록</a>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      const role = localStorage.getItem("role");
+      const uid = localStorage.getItem("uid");
+      //DOM객체
+      let txt = document.createTextNode("당신은 손님입니다.");
+      if (role || uid) {
+        txt = document.createTextNode(`(${uid}의 권한은 ${role})`);
+        document.querySelector("h3").appendChild(txt);
+      }
+      //목록을 가져오기 위한 라우팅정보 확인
+      fetch("list")
+        .then((resp) => resp.json())
+        .then((data) => {
+          data.forEach((elem) => {
+            let btn;
+            if (role == "User") {
+              btn = `<button onclick=deletebtn('${elem.user_id}') type="button" class="btn btn-danger" disabled>삭제</button>`;
+            } else {
+              btn = `<button onclick=deletebtn('${elem.user_id}') type="button" class="btn btn-danger">삭제</button>`;
+            }
+            document.querySelector("#membody").insertAdjacentHTML(
+              "beforeend",
+              `<tr><td>${elem.user_id}</td>
+                  <td>${elem.user_name}</td>
+                  <td><img width=100px height=80px src="images/${elem.user_img}"></td>
+                  <td>${btn}</td>
+                  </tr>`,
+            );
+          });
+        })
+        .catch((err) => console.error(err));
+      //deletebtn() 함수 정의
+      function deletebtn(uid) {
+        console.log(uid);
+        if (role == "Admin") {
+          if (confirm(`삭제하겠습니까?`)) {
+            fetch(`/delete/${uid}`, {
+              method: "delete",
+            })
+              .then((resp) => resp.json())
+              .then((data) => {
+                console.log(data);
+                alert(`${uid}님을 삭제하였습니다.`);
+                location.reload();
+              })
+              .catch((err) => console.error(err));
+          }
+        } else {
+          alert(`삭제권한이 없습니다`);
+        }
+      }
+    </script>
+  </body>
+</html>

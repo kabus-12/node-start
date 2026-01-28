@@ -1,6 +1,9 @@
 const express = require("express");
 const multer = require("multer");
 const app = express(); //인스턴스
+const crypto = require("crypto");
+const path = require("path");
+const fs = require("fs");
 
 const pool = require("./db");
 
@@ -30,6 +33,11 @@ const upload = multer({ storage }); //multer 모듈의 인스턴스
 //public폴더의 html,css,js url을 통해서 접근
 app.use(express.static("public"));
 
+app.use(express.json()); //json 형태의 데이터 수신 가능
+//json 형태의 데이터 수신 가능 application/json
+app.use(express.urlencoded({ extended: true })); //form데이터 수신 가능
+// form 데이터 수신 가능. application/x-www-form-urlencoded
+
 //라우팅 url :실행함수
 app.get("/", (req, res) => {
   //실행할 기능
@@ -54,13 +62,85 @@ app.post("/upload", upload.single("user_img"), (req, res) => {
 //회원추가
 app.post("/create", upload.single("user_img"), async (req, res) => {
   const { user_id, user_pw, user_name } = req.body;
-  const file_name = req.file.filename;
-  //db 입력
-  let result = await pool.query(
-    "insert into member(user_id,user_pw,user_name,user_img) values(?,?,?,?)",
-    [user_id, user_pw, user_name, file_name],
+  const file_name = req.file ? req.file.filename : null;
+  //암호화 비밀번호
+  let passwd = crypto
+    .createHash("sha512") //암호화방식
+    .update(user_pw) //암호화할 평문
+    .digest("base64"); //인코딩 방식
+
+  try {
+    //db 입력
+    let result = await pool.query(
+      "insert into member(user_id,user_pw,user_name,user_img) values(?,?,?,?)",
+      [user_id, passwd, user_name, file_name],
+    );
+    //반환결과
+    res.json({ retCode: "OK" });
+  } catch (err) {
+    const ufile = path.join(__dirname, "public/images", file_name);
+    fs.unlink(ufile, (err) => {
+      if (err) {
+        console.log(`파일 삭제중 error => ${err}`);
+      } else {
+        console.log(`파일 삭제 완료 => ${ufile}`);
+      }
+    });
+    res.json({ retCode: "NG", retMsg: err.sqlMessage });
+  }
+});
+
+//요청방식: post, url(/login),body(/req.body)의 값 (id,pw)
+//pw => 암호화.
+//select * from member where id=? and pw=? 혹은 select count(*) as cnt from member where id=? and pw=?
+//조회(1) -> retCode:OK, 조회(0) => retCode.NG
+app.post("/login", async (req, res) => {
+  const { user_id, user_pw } = req.body;
+  let pawd = crypto.createHash("sha512").update(user_pw).digest("base64");
+  let [result, sec] = await pool.query(
+    "select user_name,responsibility from member where user_id=? and user_pw=?",
+    [user_id, pawd],
   );
-  res.send("done");
+  console.log(result);
+  if (result.length == 1) {
+    res.json({
+      retCode: "OK",
+      name: result[0].user_name,
+      role: result[0].responsibility,
+    });
+  } else {
+    res.json({ retCode: "NG" });
+  }
+});
+
+app.delete("/delete/:uid", async (req, res) => {
+  const user_id = req.params.uid;
+  const [file_name, sec1] = await pool.query(
+    "select user_img from member where user_id = ?",
+    [user_id],
+  );
+  const [result, sec] = await pool.query(
+    "delete from member where user_id = ? ",
+    [user_id],
+  );
+  console.log(file_name[0]);
+  if (result.affectedRows) {
+    const ufile = path.join(__dirname, "public/images", file_name[0].user_img);
+    fs.unlink(ufile, (err) => {
+      if (err) {
+        console.log("파일 삭제중 에러");
+      } else {
+        console.log("파일 삭제 완료 ");
+      }
+      res.json(result);
+    });
+  }
+});
+
+//회원목록
+app.get("/list", async (req, res) => {
+  let [result, sec] = await pool.query("select * from member");
+  res.json(result);
 });
 
 //실행
