@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <title>메일 발송</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        font-family: "Segoe UI", Arial, sans-serif;
+      }
+
+      body {
+        background-color: #f4f6f9;
+        padding: 40px;
+      }
+
+      .mail-container {
+        max-width: 600px;
+        margin: auto;
+        background: #fff;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      }
+
+      .mail-container h2 {
+        text-align: center;
+        margin-bottom: 25px;
+        color: #333;
+      }
+
+      .form-group {
+        margin-bottom: 15px;
+      }
+
+      label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 6px;
+        color: #555;
+      }
+
+      input[type="text"],
+      input[type="email"],
+      textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 14px;
+      }
+
+      textarea {
+        resize: none;
+        height: 160px;
+      }
+
+      .btn-send {
+        width: 100%;
+        padding: 12px;
+        border: none;
+        border-radius: 6px;
+        background-color: #4a6cf7;
+        color: white;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+
+      .btn-send:hover {
+        background-color: #3b57d4;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="mail-container">
+      <h2>📧 메일 발송</h2>
+
+      <div class="form-group">
+        <label for="from">발신자</label>
+        <input type="email" id="from" placeholder="sender@example.com" />
+      </div>
+
+      <div class="form-group">
+        <label for="to">수신자</label>
+        <input type="email" id="to" placeholder="receiver@example.com" />
+      </div>
+
+      <div class="form-group">
+        <label for="subject">제목</label>
+        <input type="text" id="subject" placeholder="메일 제목을 입력하세요" />
+      </div>
+
+      <div class="form-group">
+        <label for="content">내용</label>
+        <textarea id="content" placeholder="메일 내용을 입력하세요"></textarea>
+      </div>
+
+      <button class="btn-send">메일 보내기</button>
+    </div>
+    <script>
+      const btn = document.querySelector(".btn-send");
+      btn.addEventListener("click", (e) => {
+        const to = document.querySelector("#to").value;
+        const subject = document.querySelector("#subject").value;
+        const text = document.querySelector("#content").value;
+
+        if (!to || !subject || !text) {
+          alert("수신자 , 제목 , 내용을 입력해주세요");
+          return;
+        }
+        fetch("/mail_send", {
+          method: "post",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ to, subject, text }),
+        })
+          .then((resp) => resp.json())
+          .then((data) => {
+            if (data.retCode == "OK") {
+              console.log(data);
+              alert("메일이 발송되었습니다");
+            } else {
+              console.log(data.retMsg);
+            }
+          })
+          .catch((err) => console.error(err));
+      });
+    </script>
+  </body>
+</html>
