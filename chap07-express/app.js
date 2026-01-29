@@ -6,6 +6,7 @@ const path = require("path");
 const fs = require("fs");
 const transporter = require("./extensions/nodemailer");
 const pool = require("./db");
+const cron_jop = require("./extensions/nodecron");
 
 const app = express(); //인스턴스
 
@@ -48,22 +49,90 @@ app.get("/", (req, res) => {
 //라우팅 파일
 app.use("/sample", require("./routes/sample.route"));
 
+//스케줄잡 시작
+app.get("/start", (req, res) => {
+  console.log("메일발송 시작");
+  cron_jop.start();
+  res.send("메일발송 시작됨");
+});
+//스케줄잡 종료
+app.get("/end", (req, res) => {
+  console.log("메일발송 종료");
+  cron_jop.stop();
+  res.send("메일발송 종료됨");
+});
+
+// /members/guest@email.com
+app.get("/members/:to", async (req, res) => {
+  const to = req.params.to;
+  //member 테이블 조회
+  let [result, sec] = await pool.query(
+    "select * from member where responsibility = 'User'",
+  );
+  let html = `<table border = "2">
+  <thead>
+  <tr>
+  <th>id</th>
+  <th>이름</th>
+  <th>이미지</th>
+  <th>권한</th>
+  </tr>
+  </thead>
+  <tbody>`;
+  html += result
+    .map(
+      (elem) => `<tr><td>${elem.user_id}</td>
+    <td>${elem.user_name}</td>
+    <td>${elem.user_img}</td>
+    <td>${elem.responsibility}</td></tr>`,
+    )
+    .join("");
+  html += `</tbody>
+  </table>`;
+
+  //결과 result
+  //sendMail start
+  transporter.sendMail(
+    {
+      from: process.env.FROM,
+      to,
+      subject: "회원목록",
+      html,
+    },
+    (err, info) => {
+      if (
+        (err) => {
+          res.json({ retCode: "NG", retMag: err });
+        }
+      );
+      res.json({ retCode: "OK", retMsg: info });
+    },
+  );
+  //sendMail end
+});
+
 //메일발송
-app.post("/mail_send", async (req, res) => {
+app.post("/mail_send", upload.single("img"), async (req, res) => {
   const { to, subject, text } = req.body;
+  const file_name = req.file ? req.file.filename : null;
+  console.log(req.file.filename);
+
   const html = text
     .split("\n")
     .map((elem) => "<p>" + elem + "</p>")
     .join("");
+  //sendMail start
   transporter.sendMail(
     {
-      from: "dksgudwn14@daum.net",
+      from: process.env.FROM,
       to,
       subject,
       html,
       attachments: [
         {
-          path: path.join(__dirname, "public/images", "/기계식키보드.jpg"),
+          // filename: req.file.filename,
+          //path: path.join(__dirname, "public/images"),
+          path: path.join(__dirname, "public/images", req.file.filename),
         },
       ],
     },
@@ -75,9 +144,18 @@ app.post("/mail_send", async (req, res) => {
         }
       );
       console.log("ok", info);
+      const ufile = path.join(__dirname, "public/images", file_name);
+      fs.unlink(ufile, (err) => {
+        if (err) {
+          console.log(`파일 삭제중 error => ${err}`);
+        } else {
+          console.log(`파일 삭제 완료 => ${ufile}`);
+        }
+      });
       res.json({ retCode: "OK", retMsg: info });
     },
   );
+  //sendMail end
 
   console.log("sendmail start==>");
 });

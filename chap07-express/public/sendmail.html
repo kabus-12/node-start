@@ -42,6 +42,7 @@
 
       input[type="text"],
       input[type="email"],
+      input[type="file"],
       textarea {
         width: 100%;
         padding: 10px;
@@ -97,11 +98,19 @@
         <textarea id="content" placeholder="메일 내용을 입력하세요"></textarea>
       </div>
 
+      <div class="form-group">
+        <label for="attachment">첨부파일</label>
+        <input type="file" id="attachment" />
+      </div>
+
       <button class="btn-send">메일 보내기</button>
     </div>
     <script>
       const btn = document.querySelector(".btn-send");
       btn.addEventListener("click", (e) => {
+        e.preventDefault();
+
+        //multipart요청
         const to = document.querySelector("#to").value;
         const subject = document.querySelector("#subject").value;
         const text = document.querySelector("#content").value;
@@ -110,10 +119,20 @@
           alert("수신자 , 제목 , 내용을 입력해주세요");
           return;
         }
+
+        const formData = new FormData();
+        formData.append("to", document.querySelector("#to").value);
+        formData.append("subject", document.querySelector("#subject").value);
+        formData.append("text", document.querySelector("#content").value);
+
+        const fileInput = document.querySelector("#attachment");
+        if (fileInput.files.length > 0) {
+          formData.append("img", fileInput.files[0]);
+        }
+
         fetch("/mail_send", {
           method: "post",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ to, subject, text }),
+          body: formData,
         })
           .then((resp) => resp.json())
           .then((data) => {
