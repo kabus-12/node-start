@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <title>엑셀 업로드</title>
+    <link rel="stylesheet" href="style.css" />
+    <style>
+      * {
+        box-sizing: border-box;
+        font-family: "Pretendard", Arial, sans-serif;
+      }
+
+      body {
+        background: #f4f6f9;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .upload-box {
+        background: #fff;
+        padding: 30px 40px;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        width: 360px;
+        text-align: center;
+      }
+
+      .upload-box h2 {
+        margin-bottom: 20px;
+        color: #333;
+      }
+
+      .upload-form {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      /* 파일 선택 */
+      .upload-form input[type="file"] {
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        cursor: pointer;
+      }
+
+      /* 업로드 버튼 */
+      .upload-form button {
+        padding: 12px;
+        border: none;
+        border-radius: 6px;
+        background: #4f46e5;
+        color: white;
+        font-size: 15px;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+
+      /* hover */
+      .upload-form button:hover {
+        background: #4338ca;
+      }
+
+      /* 파일 선택 전 버튼 비활성화 (CSS만 사용) */
+      .upload-form:not(:has(input[type="file"]:valid)) button {
+        background: #ccc;
+        cursor: not-allowed;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="upload-box">
+      <h2>엑셀 파일 업로드</h2>
+
+      <form
+        class="upload-form"
+        action="/upload"
+        method="post"
+        enctype="multipart/form-data"
+      >
+        <input type="file" name="excel" accept=".xls,.xlsx" />
+        <button type="submit">업로드</button>
+      </form>
+    </div>
+    <script>
+      fetch("/upload/member")
+        .then((resp) => resp.json())
+        .then((data) => console.log(data))
+        .catch((err) => console.error(err));
+    </script>
+  </body>
+</html>

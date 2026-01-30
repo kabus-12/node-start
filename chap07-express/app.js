@@ -30,8 +30,25 @@ const storage = multer.diskStorage({
     cb(null, fn + "_" + Date.now() + "." + ext);
   },
 });
+const storage1 = multer.diskStorage({
+  //저장경로
+  destination: (req, file, cb) => {
+    console.log(file);
+    cb(null, "uploads");
+  },
+  //파일이름
+  filename: (req, file, cb) => {
+    const file_name = Buffer.from(file.originalname, "latin1").toString(
+      "utf-8",
+    ); //키보드_123123123.png
+    const fn = file_name.substring(0, file_name.indexOf("."));
+    const ext = file_name.substring(file_name.indexOf(".") + 1);
+    cb(null, fn + "_" + Date.now() + "." + ext);
+  },
+});
 
 const upload = multer({ storage }); //multer 모듈의 인스턴스
+const upload1 = multer({ storge: storage1 }); //multer 모듈의 인스턴스
 
 //public폴더의 html,css,js url을 통해서 접근
 app.use(express.static("public"));
@@ -48,6 +65,31 @@ app.get("/", (req, res) => {
 });
 //라우팅 파일
 app.use("/sample", require("./routes/sample.route"));
+
+//엑셀업로드 -> 신규회원추가
+//요청방식: post, url:/uploads/member,엑셀연습1.xlsx파일
+app.post("/upload/member", upload1.single(""), async (req, res) => {
+  //일반 파일
+  console.log(req);
+  const workbook = xlsx.readFile(`./uploads/${req.file.filename}`);
+
+  const firstSheetName = workbook.SheetNames[0];
+
+  const firstSheet = workbook.Sheets[firstSheetName];
+  const result = xlsx.utils.sheet_to_json(firstSheet);
+  result.forEach(async (elem) => {
+    let password = crypto
+      .createHash("sha512")
+      .update("" + elem.password)
+      .digest("base64");
+    await pool.query(
+      `insert into member(user_id,user_pw,user_name)
+      values(?,?,?)`,
+      [elem.user_id, password, elem.user_name],
+    );
+  });
+  res.json(result);
+});
 
 //스케줄잡 시작
 app.get("/start", (req, res) => {
